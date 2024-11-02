@@ -24,65 +24,35 @@ func getIcon(i int) fyne.Resource {
 
 func main() {
 
-	a := app.New()
-	w := a.NewWindow("Devices")
-	w.Resize(fyne.NewSize(320, 240))
-	t := widget.NewTable(func() (int, int) {
-		return 100, 4
-	}, func() fyne.CanvasObject {
-		return container.NewMax(widget.NewLabel("template11"), widget.NewIcon(nil))
-	}, func(id widget.TableCellID, o fyne.CanvasObject) {
-		l := o.(*fyne.Container).Objects[0].(*widget.Label)
-		i := o.(*fyne.Container).Objects[1].(*widget.Icon)
-		l.Show()
-		i.Hide()
-		switch id.Col {
-		case 2:
-			l.Hide()
-			i.Show()
-			i.SetResource(getIcon(id.Row))
-		case 0:
-			l.SetText("hostname")
-		case 1:
-			l.SetText("127.0.0.1")
-		case 3:
-			l.SetText("notes...")
-		}
-	})
-	t.SetColumnWidth(2, 24)
-	t.SetColumnWidth(3, 156)
-	w.SetContent(t)
-	w.ShowAndRun()
+	a := app.NewWithID("ad-tool")
+	w := a.NewWindow("Ad Tool")
 
-	//a := app.NewWithID("ad-tool")
-	//w := a.NewWindow("Ad Tool")
-	//
-	//// 设置为主程序,关联了就关闭应用
-	//w.SetMaster()
-	//
-	//// 堆栈容器
-	//content := container.NewStack()
-	//title := widget.NewLabel("Component name")
-	//intro := widget.NewLabel("An intro")
-	//// 文本换行模式
-	//intro.Wrapping = fyne.TextWrapWord
-	//
-	//// 设置结构
-	//setTutorial := func(t tutorials.Tutorial) {
-	//	title.SetText(t.Title)
-	//	intro.SetText(t.Intro)
-	//
-	//	content.Objects = []fyne.CanvasObject{t.View(w)}
-	//	content.Refresh()
-	//}
-	//
-	//tutorial := container.NewBorder(container.NewVBox(title, widget.NewSeparator(), intro), nil, nil, nil, content)
-	//split := container.NewHSplit(makeNav(setTutorial, true), tutorial)
-	//split.Offset = 0.2
-	//
-	//w.SetContent(split)
-	//w.Resize(fyne.NewSize(640, 460))
-	//w.ShowAndRun()
+	// 设置为主程序,关联了就关闭应用
+	w.SetMaster()
+
+	// 堆栈容器
+	content := container.NewStack()
+	title := widget.NewLabel("Component name")
+	intro := widget.NewLabel("An intro")
+	// 文本换行模式
+	intro.Wrapping = fyne.TextWrapWord
+
+	// 设置结构
+	setTutorial := func(t tutorials.Tutorial) {
+		title.SetText(t.Title)
+		intro.SetText(t.Intro)
+
+		content.Objects = []fyne.CanvasObject{t.View(w)}
+		content.Refresh()
+	}
+
+	tutorial := container.NewBorder(container.NewVBox(title, widget.NewSeparator(), intro), nil, nil, nil, content)
+	split := container.NewHSplit(makeNav(setTutorial, true), tutorial)
+	split.Offset = 0.2
+
+	w.SetContent(split)
+	w.Resize(fyne.NewSize(640, 460))
+	w.ShowAndRun()
 }
 
 // 构建侧边的功能栏

@@ -16,8 +16,8 @@ var Tutorials = map[string]Tutorial{
 		View:  welcomeScreen,
 	},
 	"archery": {
-		Title: "Archery",
-		Intro: "执行sql查询",
+		Title: "Archery-SQL查询",
+		Intro: "",
 		View:  archeryScreen,
 	},
 }
