@@ -11,17 +11,6 @@ import (
 
 const preferenceCurrentTutorial = "currentTutorial"
 
-func getIcon(i int) fyne.Resource {
-	switch i % 3 {
-	case 1:
-		return theme.HomeIcon()
-	case 2:
-		return theme.MailSendIcon()
-	default:
-		return theme.MediaVideoIcon()
-	}
-}
-
 func main() {
 
 	a := app.NewWithID("ad-tool")
