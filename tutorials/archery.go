@@ -10,13 +10,14 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"image/color"
 	"log"
+	"strconv"
 )
 
 func archeryScreen(_ fyne.Window) fyne.CanvasObject {
 
 	// 初始化是一个grid布局
-	//sqlContentBox := makeSQLContentBox(886, 500)
-	//instanceSelectBox := makeSelectBox(200, 300)
+	sqlContentBox := makeSQLContentBox(886, 500)
+	instanceSelectBox := makeSelectBox(200, 300)
 	//
 	//return container.NewHBox(sqlContentBox, instanceSelectBox)
 
@@ -25,19 +26,40 @@ func archeryScreen(_ fyne.Window) fyne.CanvasObject {
 	// 分为上下2块,上面是输入执行的sql,下面显示结果
 	// 只有点了查询才分成2块,正常是一块
 
+	headers := []string{"rule_name", "rule_uuid", "begin_run_at", "request_date"}
+	dataRows := [][]string{
+		{"广告活动有曝光，先归1", "115499914106700288", "3600", "2024-11-05"},
+		{"广告活动有曝光，先归2", "115499914106700289", "7200", "2024-11-05"},
+		{"广告活动有曝光，先归3", "115499914106700210", "10800", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+		{"广告活动有曝光，先归4", "115499914106700211", "14400", "2024-11-05"},
+	}
+
 	tableContainer := container.NewStack()
 
 	createTable := func() *widget.Table {
 		table := widget.NewTableWithHeaders(
 			func() (int, int) {
-				return 5, 15
+				return len(dataRows), len(headers)
 			},
 			func() fyne.CanvasObject {
 				return widgets.NewCellWidget("default (hopefully) large enough text", nil) // placeholder to specify width
 			},
 			func(id widget.TableCellID, object fyne.CanvasObject) {
 				cell := object.(*widgets.CellWidget)
-				cell.SetText("cell content xxxxxasijdoisahdoihsaoidhosahdoihsoaidhosa")
+				row := id.Row
+				col := id.Col
+
+				cell.SetText(dataRows[row][col])
 				cell.OnRightClick = func(event *fyne.PointEvent) {
 					items := []*fyne.MenuItem{
 						fyne.NewMenuItem(lang.X("app.copy_to_clipboard", "Copy"), func() {
@@ -56,18 +78,32 @@ func archeryScreen(_ fyne.Window) fyne.CanvasObject {
 					cell.Importance = widget.MediumImportance
 				}
 
-				if id.Row == 1 {
-					cell.Wrapping = fyne.TextWrap(fyne.TextTruncateClip)
-				}
+				cell.Wrapping = fyne.TextWrap(fyne.TextTruncateClip)
 			},
 		)
+		table.UpdateHeader = func(id widget.TableCellID, object fyne.CanvasObject) {
+			if id.Row == -1 {
+				label := object.(*widget.Label)
+				label.Alignment = 0
+				label.SetText(headers[id.Col])
+			}
+			if id.Col == -1 {
+				label := object.(*widget.Label)
+				label.SetText(strconv.Itoa(id.Row + 1))
+			}
+
+		}
 		// table.HideSeparators = true
 		return table
+
 	}
 
 	tableContainer.Objects = []fyne.CanvasObject{createTable()}
+	// return tableContainer
+	sqlArea := container.NewHBox(sqlContentBox, instanceSelectBox)
 
-	return tableContainer
+	return container.NewVSplit(sqlArea, tableContainer)
+
 }
 
 func makeBox(w, h float32) fyne.CanvasObject {
