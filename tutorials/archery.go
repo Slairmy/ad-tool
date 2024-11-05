@@ -4,28 +4,74 @@ import (
 	"AdTool/widgets"
 	"fmt"
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/lang"
 	"fyne.io/fyne/v2/widget"
-	"image/color"
 	"log"
 	"strconv"
+	"strings"
 )
 
 func archeryScreen(_ fyne.Window) fyne.CanvasObject {
 
-	// 初始化是一个grid布局
-	sqlContentBox := makeSQLContentBox(886, 500)
-	instanceSelectBox := makeSelectBox(200, 300)
+	sqlContentEntry := widget.NewMultiLineEntry()
+	sqlContentEntry.SetPlaceHolder("输入 SQL 查询...")
+	sqlContentEntry.SetMinRowsVisible(10)
+
+	// 创建行号标签
+	// lineNumberLabel := widget.NewLabel("1")
+	//lineNumberEntry := widget.NewMultiLineEntry()
+	//lineNumberEntry.Disable() // 禁用行号输入框，防止用户修改
+	//lineNumberEntry.SetMinRowsVisible(10)
+	//lineNumberEntry.Scroll = 3
+	//// 更新行号函数
+	//updateLineNumbers := func() {
+	//	// 文本输入框的总行数
+	//	lines := strings.Count(sqlContentEntry.Text, "\n") + 1
+	//	lineNumbers := ""
+	//	for i := 1; i <= lines; i++ {
+	//		lineNumbers += fmt.Sprintf("%d\n", i)
+	//	}
+	//	lineNumberEntry.SetText(strings.TrimRight(lineNumbers, "\n"))
+	//}
 	//
-	//return container.NewHBox(sqlContentBox, instanceSelectBox)
+	//// 监听输入框文本变化
+	//sqlContentEntry.OnChanged = func(s string) {
+	//	updateLineNumbers()
+	//}
 
-	// return container.NewGridWithColumns(2, sqlContentBox, instanceSelectBox)
+	// 使用一个Label而不是MultiLineEntry来显示行号
+	lineNumberLabel := widget.NewLabel("1")
+	// lineNumberLabel.Wrapping = fyne.TextWrapWord // 设置行号换行
+	// lineNumberLabel.Hide()                       // 初始化时隐藏行号，等更新
 
-	// 分为上下2块,上面是输入执行的sql,下面显示结果
-	// 只有点了查询才分成2块,正常是一块
+	// 更新行号函数
+	updateLineNumbers := func() {
+		lines := strings.Count(sqlContentEntry.Text, "\n") + 1
+		lineNumbers := ""
+		for i := 1; i <= lines; i++ {
+			lineNumbers += fmt.Sprintf("%d\n", i)
+		}
+		log.Println(strings.TrimRight(lineNumbers, "\n"))
+		lineNumberLabel.SetText(strings.TrimRight(lineNumbers, "\n"))
+	}
 
+	// 监听 SQL 输入框的文本变化
+	sqlContentEntry.OnChanged = func(s string) {
+		updateLineNumbers()
+	}
+
+	// 将行号容器放到一个垂直容器中
+	lineNumberContainer := container.NewVBox(lineNumberLabel)
+
+	// instanceShow
+	dbConfigArea := widget.NewLabel("这里到时候直接显示实例,数据库")
+	sqlArea := container.NewBorder(nil, dbConfigArea, lineNumberContainer, makeSelectBox(), sqlContentEntry)
+	tableContainer := makeTableBox()
+	return container.NewVSplit(sqlArea, tableContainer)
+}
+
+func makeTableBox() fyne.CanvasObject {
 	headers := []string{"rule_name", "rule_uuid", "begin_run_at", "request_date"}
 	dataRows := [][]string{
 		{"广告活动有曝光，先归1", "115499914106700288", "3600", "2024-11-05"},
@@ -65,7 +111,6 @@ func archeryScreen(_ fyne.Window) fyne.CanvasObject {
 						fyne.NewMenuItem(lang.X("app.copy_to_clipboard", "Copy"), func() {
 							// window.Clipboard().SetContent(cell.Text)
 							log.Println("复制内容: " + cell.Text)
-
 						}),
 					}
 					menu := fyne.NewMenu("", items...)
@@ -93,54 +138,27 @@ func archeryScreen(_ fyne.Window) fyne.CanvasObject {
 			}
 
 		}
-		// table.HideSeparators = true
+
 		return table
-
 	}
-
 	tableContainer.Objects = []fyne.CanvasObject{createTable()}
-	// return tableContainer
-	sqlArea := container.NewHBox(sqlContentBox, instanceSelectBox)
-
-	return container.NewVSplit(sqlArea, tableContainer)
-
+	return tableContainer
 }
 
-func makeBox(w, h float32) fyne.CanvasObject {
-	rect := canvas.NewRectangle(&color.NRGBA{R: 128, G: 128, B: 128, A: 255})
-	rect.SetMinSize(fyne.NewSize(w, h))
-	return rect
-}
-
-func makeSQLContentBox(w, h float32) fyne.CanvasObject {
-	rect := canvas.NewRectangle(nil)
-	rect.SetMinSize(fyne.NewSize(w, h))
-
-	// 创建多行文本输入框
-	sqlContentEntry := widget.NewMultiLineEntry()
-	sqlContentEntry.SetPlaceHolder("输入 SQL 查询...")
-	sqlContentEntry.Resize(fyne.NewSize(w-20, h-20)) // 设置输入框尺寸并留出边距
-	// 偏移一点看下
-	sqlContentEntry.Move(fyne.NewPos(20, 0))
-
-	// 使用绝对布局将背景和输入框放入容器中
-	return container.NewWithoutLayout(rect, sqlContentEntry)
-}
-
-// 我想自由控制间距
-func makeSelectBox(w, h float32) fyne.CanvasObject {
-	instanceSelect := widget.NewSelect([]string{"实例1", "实例2", "实例3"}, func(s string) {})
+// 水平布局试一下
+func makeSelectBox() fyne.CanvasObject {
+	instanceSelect := widget.NewSelect([]string{
+		"实例1", "实例2", "实例3",
+	}, func(s string) {})
 	instanceSelect.PlaceHolder = "选择一个实例"
-	instanceSelect.Resize(fyne.NewSize(200, 40))
-	databaseSelect := widget.NewSelect([]string{"数据库1", "数据库2", "数据库3"}, func(s string) {})
+	databaseSelect := widget.NewSelect([]string{
+		"数据库1", "数据库2", "数据库3",
+	}, func(s string) {})
 	databaseSelect.PlaceHolder = "选择一个数据库"
-	databaseSelect.Resize(fyne.NewSize(200, 40))
-	limitSelect := widget.NewSelect([]string{"100", "500", "1000"}, func(s string) {})
+	limitSelect := widget.NewSelect([]string{
+		"100", "500", "1000",
+	}, func(s string) {})
 	limitSelect.SetSelected("100")
-	limitSelect.Resize(fyne.NewSize(200, 40))
-
-	// 再添加一个按钮
-	// selectButton := widget.NewButton("SQL查询", func() {})
 
 	button := &widget.Button{
 		Text:       "SQL查询",
@@ -149,17 +167,6 @@ func makeSelectBox(w, h float32) fyne.CanvasObject {
 			fmt.Println("执行sql查询")
 		},
 	}
-	button.Resize(fyne.NewSize(100, 40))
 
-	// 在vbox里面放一个自由布局 -- 自由布局里面的所有组件都需要自己设置位置和大小
-	freeLayout := container.NewWithoutLayout(instanceSelect, databaseSelect, limitSelect, button)
-
-	// 这里的move是相对于freeLayout这里面的位置
-	instanceSelect.Move(fyne.NewPos(0, 0))                                                                              // 第一个下拉框在顶部
-	databaseSelect.Move(fyne.NewPos(0, instanceSelect.Size().Height+10))                                                // 第二个下拉框在第一个下方，加10个像素间距
-	limitSelect.Move(fyne.NewPos(0, instanceSelect.Size().Height+databaseSelect.Size().Height+20))                      // 第三个下拉框在第二个下方，加10个像素间距
-	button.Move(fyne.NewPos(0, instanceSelect.Size().Height+databaseSelect.Size().Height+limitSelect.Size().Height+30)) // 第三个下拉框在第二个下方，加10个像素间距
-
-	freeLayout.Resize(fyne.NewSize(200, 300))
-	return freeLayout
+	return container.NewVBox(instanceSelect, databaseSelect, limitSelect, button)
 }
