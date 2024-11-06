@@ -145,21 +145,15 @@ func makeTableBox() fyne.CanvasObject {
 	return tableContainer
 }
 
-// 水平布局试一下
 func makeSelectBox() fyne.CanvasObject {
-	instanceSelect := widget.NewSelect([]string{
-		"实例1", "实例2", "实例3",
-	}, func(s string) {})
-	instanceSelect.PlaceHolder = "选择一个实例"
-	databaseSelect := widget.NewSelect([]string{
-		"数据库1", "数据库2", "数据库3",
-	}, func(s string) {})
-	databaseSelect.PlaceHolder = "选择一个数据库"
+	departmentIdEntry := widget.NewEntry()
+	departmentIdEntry.PlaceHolder = "输入企业id"
+	// todo 企业id框失去焦点之后自动查询店铺
+
 	limitSelect := widget.NewSelect([]string{
 		"100", "500", "1000",
 	}, func(s string) {})
 	limitSelect.SetSelected("100")
-
 	button := &widget.Button{
 		Text:       "SQL查询",
 		Importance: widget.HighImportance,
@@ -167,6 +161,35 @@ func makeSelectBox() fyne.CanvasObject {
 			fmt.Println("执行sql查询")
 		},
 	}
-
-	return container.NewVBox(instanceSelect, databaseSelect, limitSelect, button)
+	// 在 Fyne 中，当 container.NewBorder 中的 right 部分加入了 VBox 容器时，
+	//Resize 方法不会强制应用指定的大小。container.NewBorder 会根据布局来自动调整 right 的大小，
+	//而 Resize 仅适用于独立组件，嵌入到其他布局的组件会被布局重新计算大小。
+	box := container.NewVBox(departmentIdEntry, limitSelect, button)
+	rightContainer := container.NewGridWrap(fyne.NewSize(200, 100), box)
+	return rightContainer
 }
+
+//func makeSelectBox() fyne.CanvasObject {
+//	instanceSelect := widget.NewSelect([]string{
+//		"实例1", "实例2", "实例3",
+//	}, func(s string) {})
+//	instanceSelect.PlaceHolder = "选择一个实例"
+//	databaseSelect := widget.NewSelect([]string{
+//		"数据库1", "数据库2", "数据库3",
+//	}, func(s string) {})
+//	databaseSelect.PlaceHolder = "选择一个数据库"
+//	limitSelect := widget.NewSelect([]string{
+//		"100", "500", "1000",
+//	}, func(s string) {})
+//	limitSelect.SetSelected("100")
+//
+//	button := &widget.Button{
+//		Text:       "SQL查询",
+//		Importance: widget.HighImportance,
+//		OnTapped: func() {
+//			fmt.Println("执行sql查询")
+//		},
+//	}
+//
+//	return container.NewVBox(instanceSelect, databaseSelect, limitSelect, button)
+//}
